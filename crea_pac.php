@@ -23,7 +23,7 @@
             "estado"    => 'Activo',
           );
         
-        $consultaSQL = "INSERT INTO pacientes (nombres, apellidos, correo, estado)";
+        $consultaSQL = "INSERT INTO patients (first_name, last_name, email, status)";
         $consultaSQL .= "values (:" . implode(", :", array_keys($paciente)) . ")";
         
         $sentencia = $conexion->prepare($consultaSQL);

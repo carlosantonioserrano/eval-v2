@@ -20,13 +20,13 @@
   ];
   
   //Recibiendo los valores de las variables
-  if (!isset($_GET['num_prueba'])) {
+  if (!isset($_GET['exam_number'])) {
     $resultado['error'] = true;
     $resultado['mensaje'] = 'La prueba no se encuentra Registrada';
   }
 
   //Recibimos el valor del numero de la prueba
-  $num_prueba = $_GET['num_prueba'];
+  $num_prueba = $_GET['exam_number'];
   
 //---------EVALUANDO TÉTRADA #1---------
 //lectura de tetrada #1 en tabla ppg
@@ -35,7 +35,7 @@ try {
   $conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
 
   $tetrada = 1;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1810,7 +1810,7 @@ catch(PDOException $error) {
 }
 
 //-----SUMANDO CADA CATEGORIA DE TABLA PPG-----
-$select=$conexion->prepare("SELECT SUM(ascendencia) AS ascendencia, SUM(responsabilidad) AS res, SUM(estab_emocion) AS est, SUM(sociabilidad) AS soc, SUM(autoestima) AS aut FROM ppg WHERE id_prueba = '{$num_prueba}'") ;
+$select=$conexion->prepare("SELECT SUM(ascendancy) AS ascendancy, SUM(responsibility) AS res, SUM(emotional) AS est, SUM(sociability) AS soc, SUM(self_esteem) AS aut FROM ppg WHERE id = '{$num_prueba}'") ;
 $select->execute();
 foreach ($select as $row)
 
@@ -1819,7 +1819,7 @@ try {
   //Preparamos los valores
   $nuevo_dato = [
     "id_prueba"  => $num_prueba,
-    "ascendencia" => $row[0],
+    "ascendancy" => $row[0],
     "res" =>  $row[1],
     "est" =>  $row[2],
     "soc" =>  $row[3],
@@ -3688,7 +3688,7 @@ catch(PDOException $error) {
 
 
 //-----SUMANDO CADA CATEGORIA DE TABLA IPG-----
-$select=$conexion->prepare("SELECT SUM(cautela) AS cau, SUM(originalidad) AS ori, SUM(comprension) AS com, SUM(vitalidad) AS vit FROM ipg WHERE id_prueba = '{$num_prueba}'") ;
+$select=$conexion->prepare("SELECT SUM(caution) AS cau, SUM(originality) AS ori, SUM(comprehension) AS com, SUM(vitality) AS vit FROM ipg WHERE id = '{$num_prueba}'") ;
 $select->execute();
 foreach ($select as $row)
 
@@ -3696,7 +3696,7 @@ foreach ($select as $row)
 try {
   //Preparamos los valores
   $nuevo_dato = [
-    "id_prueba"  => $num_prueba,
+    "id"  => $num_prueba,
     "cau" => $row[0],
     "ori" => $row[1],
     "com" => $row[2],
@@ -3704,12 +3704,12 @@ try {
   ];
 
   //Hacemos la consulta
-  $consultaSQL = "UPDATE num_prueba SET
+  $consultaSQL = "UPDATE exam_number SET
   cau = :cau,
   ori = :ori,
   com = :com,
   vit = :vit
-  WHERE id_prueba = :id_prueba";
+  WHERE id = :id";
 
   $consulta = $conexion->prepare($consultaSQL);
   $consulta->execute($nuevo_dato);

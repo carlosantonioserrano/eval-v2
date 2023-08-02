@@ -94,7 +94,7 @@
       $dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
       $conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
 
-      $consultaSQL = "SELECT * FROM num_prueba";
+      $consultaSQL = "SELECT * FROM exam_number";
 
       $sentencia = $conexion->prepare($consultaSQL);
       $sentencia->execute();
@@ -126,12 +126,12 @@
             foreach ($pruebas as $fila) {
               ?>
               <tr>
-                <td align="center"><?php echo escapar($fila["id_prueba"]); ?></td>
-                <td><?php echo escapar($fila["id_paciente"]); ?></td>
-                <td><?php echo escapar($fila["estado"]); ?></td>
+                <td align="center"><?php echo escapar($fila["id"]); ?></td>
+                <td><?php echo escapar($fila["patient_id"]); ?></td>
+                <td><?php echo escapar($fila["status"]); ?></td>
                 <td>
-                <a href="<?= 'calificar.php?id=' . escapar($fila["id_prueba"]) ?>" . >✏️Calificar</a>
-                <a href="<?= 'borrar_prueba.php?id=' . escapar($fila["id_prueba"]) ?>" onclick="return confirm('¿Está seguro de Borrar la prueba?');">🗑️Borrar</a>
+                <a href="<?= 'calificar.php?id=' . escapar($fila["id"]) ?>" . >✏️Calificar</a>
+                <a href="<?= 'borrar_prueba.php?id=' . escapar($fila["id"]) ?>" onclick="return confirm('¿Está seguro de Borrar la prueba?');">🗑️Borrar</a>
                 </td>
               </tr>
               <?php

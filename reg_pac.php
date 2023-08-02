@@ -61,9 +61,9 @@
     $conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
 
     if (isset($_POST['apellidos'])) {
-        $consultaSQL = "SELECT * FROM pacientes WHERE apellidos LIKE '%" . $_POST['apellidos'] . "%'";
+        $consultaSQL = "SELECT * FROM patients WHERE last_name LIKE '%" . $_POST['last_name'] . "%'";
     } else {
-        $consultaSQL = "SELECT id_paciente,nombres,apellidos, DATE_FORMAT(fecha_nac,'%d-%m-%Y') AS fecha_nac ,correo,estado FROM pacientes";
+        $consultaSQL = "SELECT id,first_name,last_name, DATE_FORMAT(birthdate,'%d-%m-%Y') AS birthdate ,email,status FROM patients";
     }
 
     $sentencia = $conexion->prepare($consultaSQL);
@@ -75,7 +75,7 @@
     $error= $error->getMessage();
     }
 
-    $titulo = isset($_POST['apellidos']) ? 'Lista de Pacientes (' . $_POST['apellidos'] . ')' : 'Lista de Pacientes';
+    $titulo = isset($_POST['last_name']) ? 'Lista de Pacientes (' . $_POST['last_name'] . ')' : 'Lista de Pacientes';
   ?>
 
   <?php
@@ -133,16 +133,16 @@
             foreach ($pacientes as $fila) {
               ?>
               <tr>
-                <td align="center"><?php echo escapar($fila["id_paciente"]); ?></td>
-                <td><?php echo escapar($fila["nombres"]); ?></td>
-                <td><?php echo escapar($fila["apellidos"]); ?></td>
-                <td><?php echo escapar($fila["fecha_nac"]); ?></td>
-                <td><?php echo escapar($fila["correo"]); ?></td>
-                <td><?php echo escapar($fila["estado"]); ?></td>
+                <td align="center"><?php echo escapar($fila["id"]); ?></td>
+                <td><?php echo escapar($fila["first_name"]); ?></td>
+                <td><?php echo escapar($fila["last_name"]); ?></td>
+                <td><?php echo escapar($fila["birthdate"]); ?></td>
+                <td><?php echo escapar($fila["email"]); ?></td>
+                <td><?php echo escapar($fila["status"]); ?></td>
                 <td>
-                  <a href="<?= 'borrar_pac.php?id=' . escapar($fila["id_paciente"]) ?>" onclick="return confirm('¿Está seguro de Borrar un paciente?');">🗑️Borrar</a>
-                  <a href="<?= 'edit_pac.php?id=' . escapar($fila["id_paciente"]) ?>" . >✏️Editar</a>
-                  <a href="<?= 'activar2.php?id=' . escapar($fila["id_paciente"]) ?>" . >📜Activar Prueba PPG-IPG</a>
+                  <a href="<?= 'borrar_pac.php?id=' . escapar($fila["id"]) ?>" onclick="return confirm('¿Está seguro de Borrar un paciente?');">🗑️Borrar</a>
+                  <a href="<?= 'edit_pac.php?id=' . escapar($fila["id"]) ?>" . >✏️Editar</a>
+                  <a href="<?= 'activar2.php?id=' . escapar($fila["id"]) ?>" . >📜Activar Prueba PPG-IPG</a>
                 </td>
               </tr>
               <?php

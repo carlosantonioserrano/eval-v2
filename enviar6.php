@@ -58,7 +58,7 @@
         //echo 'Conexión Exitosa';
 
         //quiery almacenar tétrada 
-        if ($result = $enlace->query("INSERT INTO ppg (tetrada, A, B, C, D) VALUES ('6','".$A."', '".$B."', '".$C."', '".$D."')")) {
+        if ($result = $enlace->query("INSERT INTO ppg (tetrad, A, B, C, D) VALUES ('6','".$A."', '".$B."', '".$C."', '".$D."')")) {
             echo "Registro #1 guardado con Éxito"."<br>";
             echo "<br>";
             mysqli_close($enlace);

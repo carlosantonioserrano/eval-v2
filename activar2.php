@@ -1,6 +1,6 @@
 <?php
   include 'conexion.php';
-  if ($result = $enlace->query("INSERT INTO num_prueba (estado) VALUES ('Activado')")) {
+  if ($result = $enlace->query("INSERT INTO exam_number (status) VALUES ('Activado')")) {
     //echo "Registro guardado con Éxito"."<br>";
     $ultimo_id = mysqli_insert_id($enlace);
     echo "<script>
@@ -14,7 +14,7 @@
     die('Error: ' . mysqli_error());
   }
  
-  echo "<script>window.location = 'activar_prueba.php'</script>";
+  echo "<script>window.location = 'calificar_prueba.php'</script>";
   exit;
 ?>
      

@@ -45,7 +45,7 @@
       <div class="container-fluid">
         <!-- Formulario -->
         <form method="post" action='enviar3.php'>
-          <!-- Tétadra #1 -->
+          <!-- Tétadra -->
         <div class="card card-default">
           <div class="card-header" style="background-color: rgb(152, 200, 255)";>
             <label align="center">Grupo 3</label>

@@ -58,7 +58,7 @@
         //echo 'Conexión Exitosa';
 
         //quiery almacenar tétrada 
-        if ($result = $enlace->query("INSERT INTO ppg (tetrada, A, B, C, D) VALUES ('2','".$A."', '".$B."', '".$C."', '".$D."')")) {
+        if ($result = $enlace->query("INSERT INTO ppg (tetrad, A, B, C, D) VALUES ('2','".$A."', '".$B."', '".$C."', '".$D."')")) {
             //echo "Registro guardado con Éxito"."<br>";
             mysqli_close($enlace);
             header("Location:ppg3.php");
@@ -69,8 +69,6 @@
         }
       }   
   }
-  
   echo "<script>window.location = 'ppg2.php'</script>";
-  exit;
-  
+  exit; 
 ?>

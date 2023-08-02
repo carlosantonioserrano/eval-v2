@@ -45,7 +45,7 @@
       <div class="container-fluid">
         <!-- Formulario -->
         <form method="post" action='enviar25.php'>
-          <!-- Tétadra #1 -->
+          <!-- Tétadra -->
         <div class="card card-default">
           <div class="card-header">
             <label align="center" background="blue">Grupo 25</label>
@@ -103,13 +103,12 @@
           </table>            
         </div>
         </div>
-          <!-- Fin Tétadra #1 -->       
+          <!-- Fin Tétadra -->       
       </div>
       <div align="center">
         <button type="submit" class="btn btn-block btn-primary" value="Enviar" style="width: 10%;", style="float:center;">Siguiente</submit>
       </div>
       </form>
-      <!-- /.container-fluid -->
     </section>
     <?php
       // declaramos el valor de las variable vacías

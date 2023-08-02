@@ -6,7 +6,6 @@
   $C=$_POST["C"];
   $D=$_POST["D"];
 
-  
   //Evaluando la tétrada #1
   //Verificando campos vacíos
   
@@ -19,7 +18,6 @@
   || $B=="+" && $C=="+" || $B=="+" && $D=="+"
   || $C=="+" && $D=="+") {
     echo '<script> alert ("Solo puede seleccionar una con el signo más en cada grupo");</script>';
-
   }
 
   //Verificando si existen más de 1 con el signo "menos"
@@ -60,7 +58,7 @@
         //echo 'Conexión Exitosa';
 
         //quiery almacenar tétrada 
-        if ($result = $enlace->query("INSERT INTO ppg (tetrada, A, B, C, D) VALUES ('8','".$A."', '".$B."', '".$C."', '".$D."')")) {
+        if ($result = $enlace->query("INSERT INTO ppg (tetrad, A, B, C, D) VALUES ('8','".$A."', '".$B."', '".$C."', '".$D."')")) {
             //echo "Registro guardado con Éxito"."<br>";
             mysqli_close($enlace);
             header("Location:ppg9.php");

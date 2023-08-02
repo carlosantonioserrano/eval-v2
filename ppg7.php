@@ -45,7 +45,7 @@
       <div class="container-fluid">
         <!-- Formulario -->
         <form method="post" action='enviar7.php'>
-          <!-- Tétadra #1 -->
+          <!-- Tétadra -->
         <div class="card card-default">
           <div class="card-header">
             <label align="center" background="blue">Grupo 7</label>

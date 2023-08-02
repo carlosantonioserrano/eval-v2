@@ -55,22 +55,20 @@
         die('Could not connect: ' . mysqli_error());
     }
     else{
-        //echo 'Conexión Exitosa';
+      //echo 'Conexión Exitosa';
 
-        //quiery almacenar tétrada 
-        if ($result = $enlace->query("INSERT INTO ppg (tetrada, A, B, C, D) VALUES ('1','".$A."', '".$B."', '".$C."', '".$D."')")) {
-            //echo "Registro guardado con Éxito"."<br>";
-            mysqli_close($enlace);
-            header("Location:ppg2.php");
-            exit;
-        } else {
-            //echo "error";
-            die('Error: ' . mysqli_error());
+      //query almacenar tétrada 
+      if ($result = $enlace->query("INSERT INTO ppg (tetrad, A, B, C, D) VALUES ('1','".$A."', '".$B."', '".$C."', '".$D."')")) {
+        //echo "Registro guardado con Éxito"."<br>";
+        mysqli_close($enlace);
+        header("Location:ppg2.php");
+        exit;
+      } else {
+          //echo "error";
+          die('Error: ' . mysqli_error());
         }
       }  
   }
-
   echo "<script>window.location = 'ppg1.php'</script>";
   exit;
-  
 ?>
