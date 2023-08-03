@@ -20,13 +20,13 @@
   ];
   
   //Recibiendo los valores de las variables
-  if (!isset($_GET['exam_number'])) {
+  if (!isset($_GET['num_prueba'])) {
     $resultado['error'] = true;
     $resultado['mensaje'] = 'La prueba no se encuentra Registrada';
   }
 
   //Recibimos el valor del numero de la prueba
-  $num_prueba = $_GET['exam_number'];
+  $num_prueba = $_GET['num_prueba'];
   
 //---------EVALUANDO TÉTRADA #1---------
 //lectura de tetrada #1 en tabla ppg
@@ -35,7 +35,7 @@ try {
   $conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
 
   $tetrada = 1;
-  $consultaSQL = "SELECT * FROM ppg WHERE id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -52,68 +52,102 @@ try {
   $C = escapar($datos['C']);
   $D = escapar($datos['D']);
 
+  //declaro la funcion datos para la tabla ppg
+  function datos_ppg(){
+    global $nuevo_dato, $num_prueba, $tetrada, $asc, $res, $est, $soc, $auto;
+    $nuevo_dato = [
+      "id"         => $num_prueba,
+      "tetrad"     => $tetrada,
+      "ascendancy" => $asc,
+      "responsibility" => $res,
+      "emotional"  => $est,
+      "sociability"  => $soc,
+      "self_esteem" => $auto
+    ];
+  }
+
+  //declaro funcion update para tabla ppg
+  function actualiza_ppg(){
+    global $consultaSQL;
+    $consultaSQL = "UPDATE ppg SET
+    ascendancy = :ascendancy,
+    responsibility = :responsibility,
+    emotional = :emotional,
+    sociability = :sociability,
+    self_esteem = :self_esteem
+    WHERE tetrad = :tetrad AND exam_number_id = :id"; 
+  }
+
+  //declaro la funcion datos para la tabla ipg
+  function datos_ipg(){
+    global $nuevo_dato, $num_prueba, $tetrada, $cau, $ori, $com, $vit;
+    $nuevo_dato = [
+      "id"         => $num_prueba,
+      "tetrada"     => $tetrada,
+      "cautela"     => $cau,
+      "originalidad" => $ori,
+      "comprension"  => $com,
+      "vitalidad"  => $vit
+    ];
+  }
+
+  //declaro funcion update para tabla ipg
+  function actualiza_ipg(){
+    global $consultaSQL;
+    $consultaSQL = "UPDATE ipg SET
+    caution = :cautela,
+    originality = :originalidad,
+    comprehension = :comprension,
+    vitality = :vitalidad
+    WHERE tetrad = :tetrada AND exam_number_id = :id"; 
+  }
+
   //Realizando cálculos para la tétrada #1 en la categoría ascendencia
-  if($B=="+"){$asc_tt1=0;}
+  if($B=="+"){$asc=0;}
   elseif($B=="-")
     { $t2=1;
     if($A=="+") {$t1=1;}
     else {$t1=2;}
-    $asc_tt1=$t1+$t2;
+    $asc=$t1+$t2;
     }
   else{$t2=0;
     if($A=="+") {$t1=1;}
     else {$t1=2;}
-    $asc_tt1=$t1+$t2;
+    $asc=$t1+$t2;
     }
   
   //Realizando cálculos para la tétrada #1 en la categoría responsabilidad
-  if($C=="-"){$res_tt1=0;}
+  if($C=="-"){$res=0;}
   elseif($C=="+")
     {$t1=1;
       if($D=="-"){$t2=1;}
       else{$t2=2;}
-      $res_tt1=$t1+$t2;
+      $res=$t1+$t2;
     }
   else{$t1=0;
     if($D=="-"){$t2=1;}
     else{$t2=2;}
-    $res_tt1=$t1+$t2;
-  }
+    $res=$t1+$t2;}
 
   //Realizando cálculos para la tétrada #1 en la categoría estab_emocional
-  if($D=="+"){$est_tt1=0;}
-  elseif($D=="-"){$est_tt1=3;}
-  else{$est_tt1=2;
-  }
+  if($D=="+"){$est=0;}
+  elseif($D=="-"){$est=3;}
+  else{$est=2;}
 
   //Realizando cálculos para la tétrada #1 en la categoría sociabilidad
-  if($A=="-"){$soc_tt1=0;}
-  elseif($A=="+"){$soc_tt1=3;}
-  else{$soc_tt1=2;}
+  if($A=="-"){$soc=0;}
+  elseif($A=="+"){$soc=3;}
+  else{$soc=2;}
 
-  $auto = $asc_tt1 + $res_tt1 + $est_tt1 + $soc_tt1;
+  $auto = $asc + $res + $est + $soc;
 
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #1
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc_tt1,
-      "responsabilidad" => $res_tt1,
-      "estab_emocion" => $est_tt1,
-      "sociabilidad"  => $soc_tt1,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -132,11 +166,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #2---------
 //lectura de tetrada #2 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 2;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -194,24 +225,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #2
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -230,11 +247,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #3---------
 //lectura de tetrada #3 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 3;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -292,24 +306,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #3
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -328,11 +328,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #4---------
 //lectura de tetrada #4 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 4;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -390,24 +387,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #4
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -427,11 +410,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #5---------
 //lectura de tetrada #5 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 5;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -489,24 +469,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #5
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -526,11 +492,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #6---------
 //lectura de tetrada #6 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 6;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -588,24 +551,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #6
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -625,11 +574,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #7---------
 //lectura de tetrada #7 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 7;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -687,24 +633,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #7
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -724,11 +656,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #8---------
 //lectura de tetrada #8 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 8;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -786,24 +715,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #8
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -823,11 +738,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #9---------
 //lectura de tetrada #9 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 9;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -885,24 +797,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #9
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -922,11 +820,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #10---------
 //lectura de tetrada #10 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 10;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -984,24 +879,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #10
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -1021,11 +902,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #11---------
 //lectura de tetrada #11 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 11;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1083,24 +961,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #11
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -1120,11 +984,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #12---------
 //lectura de tetrada #12 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 12;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1182,24 +1043,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #12
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -1219,11 +1066,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #13---------
 //lectura de tetrada #13 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 13;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1281,24 +1125,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #13
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -1318,11 +1148,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #14---------
 //lectura de tetrada #14 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 14;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1380,24 +1207,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #14
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -1417,11 +1230,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #15---------
 //lectura de tetrada #15 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 15;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1479,24 +1289,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #15
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -1516,11 +1312,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #16---------
 //lectura de tetrada #16 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 16;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1578,24 +1371,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #16
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -1615,11 +1394,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #17---------
 //lectura de tetrada #17 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 17;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1677,24 +1453,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #17
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -1714,11 +1476,8 @@ catch(PDOException $error) {
 //---------EVALUANDO TÉTRADA #18---------
 //lectura de tetrada #18 en tabla ppg
 try {
-  //$dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-  //$conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
   $tetrada = 18;
-  $consultaSQL = "SELECT * FROM ppg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ppg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1776,24 +1535,10 @@ try {
   //Actualizando el valor de ascendencia, responsabilidad, estabilidad emocional, sociabilidad y autoestima en tétrada #18
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"  => $num_prueba,
-      "tetrada"     => $tetrada,
-      "ascendencia" => $asc,
-      "responsabilidad" => $res,
-      "estab_emocion" => $est,
-      "sociabilidad"  => $soc,
-      "autoestima" => $auto
-    ];
+    datos_ppg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ppg SET
-    ascendencia = :ascendencia,
-    responsabilidad = :responsabilidad,
-    estab_emocion = :estab_emocion,
-    sociabilidad = :sociabilidad,
-    autoestima = :autoestima
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ppg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -1810,7 +1555,7 @@ catch(PDOException $error) {
 }
 
 //-----SUMANDO CADA CATEGORIA DE TABLA PPG-----
-$select=$conexion->prepare("SELECT SUM(ascendancy) AS ascendancy, SUM(responsibility) AS res, SUM(emotional) AS est, SUM(sociability) AS soc, SUM(self_esteem) AS aut FROM ppg WHERE id = '{$num_prueba}'") ;
+$select=$conexion->prepare("SELECT SUM(ascendancy) AS ascendancy, SUM(responsibility) AS res, SUM(emotional) AS est, SUM(sociability) AS soc, SUM(self_esteem) AS aut FROM ppg WHERE exam_number_id = '{$num_prueba}'") ;
 $select->execute();
 foreach ($select as $row)
 
@@ -1819,7 +1564,7 @@ try {
   //Preparamos los valores
   $nuevo_dato = [
     "id_prueba"  => $num_prueba,
-    "ascendancy" => $row[0],
+    "ascendencia" => $row[0],
     "res" =>  $row[1],
     "est" =>  $row[2],
     "soc" =>  $row[3],
@@ -1827,13 +1572,13 @@ try {
   ];
 
   //Hacemos la consulta
-  $consultaSQL = "UPDATE num_prueba SET
-  ascendencia = :ascendencia,
+  $consultaSQL = "UPDATE exam_number SET
+  ascendancy = :ascendencia,
   res = :res,
   est = :est,
   soc = :soc,
   aut = :aut
-  WHERE id_prueba = :id_prueba";
+  WHERE id = :id_prueba";
 
   $consulta = $conexion->prepare($consultaSQL);
   $consulta->execute($nuevo_dato);
@@ -1851,7 +1596,7 @@ try {
   $conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
 
   $tetrada = 19;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1907,22 +1652,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #19
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -1938,12 +1671,11 @@ catch(PDOException $error) {
   $resultado['mensaje'] = $error->getMessage();
 }
 
-
 //---------EVALUANDO TÉTRADA #20---------
 //lectura de tetrada #20 en tabla ipg
 try {
   $tetrada = 20;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -1999,22 +1731,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #20
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2035,7 +1755,7 @@ catch(PDOException $error) {
 //lectura de tetrada #21 en tabla ipg
 try {
   $tetrada = 21;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -2091,22 +1811,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #21
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2127,7 +1835,7 @@ catch(PDOException $error) {
 //lectura de tetrada #22 en tabla ipg
 try {
   $tetrada = 22;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -2183,22 +1891,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #22
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2219,7 +1915,7 @@ catch(PDOException $error) {
 //lectura de tetrada #23 en tabla ipg
 try {
   $tetrada = 23;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -2275,22 +1971,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #23
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2311,7 +1995,7 @@ catch(PDOException $error) {
 //lectura de tetrada #24 en tabla ipg
 try {
   $tetrada = 24;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -2367,22 +2051,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #24
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2403,7 +2075,7 @@ catch(PDOException $error) {
 //lectura de tetrada #25 en tabla ipg
 try {
   $tetrada = 25;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -2459,22 +2131,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #25
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2495,7 +2155,7 @@ catch(PDOException $error) {
 //lectura de tetrada #26 en tabla ipg
 try {
   $tetrada = 26;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -2551,22 +2211,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #26
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2587,7 +2235,7 @@ catch(PDOException $error) {
 //lectura de tetrada #27 en tabla ipg
 try {
   $tetrada = 27;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -2643,22 +2291,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #27
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2679,7 +2315,7 @@ catch(PDOException $error) {
 //lectura de tetrada #28 en tabla ipg
 try {
   $tetrada = 28;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -2735,22 +2371,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #28
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2771,7 +2395,7 @@ catch(PDOException $error) {
 //lectura de tetrada #29 en tabla ipg
 try {
   $tetrada = 29;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -2827,22 +2451,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #29
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2863,7 +2475,7 @@ catch(PDOException $error) {
 //lectura de tetrada #30 en tabla ipg
 try {
   $tetrada = 30;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -2919,22 +2531,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #30
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -2955,7 +2555,7 @@ catch(PDOException $error) {
 //lectura de tetrada #31 en tabla ipg
 try {
   $tetrada = 31;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -3011,22 +2611,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #31
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -3047,7 +2635,7 @@ catch(PDOException $error) {
 //lectura de tetrada #32 en tabla ipg
 try {
   $tetrada = 32;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -3103,22 +2691,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #32
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -3139,7 +2715,7 @@ catch(PDOException $error) {
 //lectura de tetrada #33 en tabla ipg
 try {
   $tetrada = 33;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -3195,22 +2771,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #33
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -3231,7 +2795,7 @@ catch(PDOException $error) {
 //lectura de tetrada #34 en tabla ipg
 try {
   $tetrada = 34;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -3287,22 +2851,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #34
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -3323,7 +2875,7 @@ catch(PDOException $error) {
 //lectura de tetrada #35 en tabla ipg
 try {
   $tetrada = 35;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -3379,22 +2931,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #35
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -3415,7 +2955,7 @@ catch(PDOException $error) {
 //lectura de tetrada #36 en tabla ipg
 try {
   $tetrada = 36;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -3471,22 +3011,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #36
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -3507,7 +3035,7 @@ catch(PDOException $error) {
 //lectura de tetrada #37 en tabla ipg
 try {
   $tetrada = 37;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -3563,22 +3091,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #37
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -3599,7 +3115,7 @@ catch(PDOException $error) {
 //lectura de tetrada #38 en tabla ipg
 try {
   $tetrada = 38;
-  $consultaSQL = "SELECT * FROM ipg WHERE id_prueba = '{$num_prueba}' AND tetrada = '{$tetrada}'";
+  $consultaSQL = "SELECT * FROM ipg WHERE exam_number_id = '{$num_prueba}' AND tetrad = '{$tetrada}'";
 
   $sentencia = $conexion->prepare($consultaSQL);
   $sentencia->execute();
@@ -3655,22 +3171,10 @@ try {
   //Actualizando el valor de cautela, originalidad, comprensión y vitalidad en tétrada #38
   try {
     //Preparamos los valores
-    $nuevo_dato = [
-      "id_prueba"   => $num_prueba,
-      "tetrada"     => $tetrada,
-      "cautela"     => $cau,
-      "originalidad" => $ori,
-      "comprension" => $com,
-      "vitalidad"   => $vit
-    ];
+    datos_ipg();
 
     //Hacemos la consulta
-    $consultaSQL = "UPDATE ipg SET
-    cautela = :cautela,
-    originalidad = :originalidad,
-    comprension = :comprension,
-    vitalidad = :vitalidad
-    WHERE tetrada = :tetrada AND id_prueba = :id_prueba";
+    actualiza_ipg();
 
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($nuevo_dato);
@@ -3688,7 +3192,7 @@ catch(PDOException $error) {
 
 
 //-----SUMANDO CADA CATEGORIA DE TABLA IPG-----
-$select=$conexion->prepare("SELECT SUM(caution) AS cau, SUM(originality) AS ori, SUM(comprehension) AS com, SUM(vitality) AS vit FROM ipg WHERE id = '{$num_prueba}'") ;
+$select=$conexion->prepare("SELECT SUM(caution) AS cau, SUM(originality) AS ori, SUM(comprehension) AS com, SUM(vitality) AS vit FROM ipg WHERE exam_number_id = '{$num_prueba}'") ;
 $select->execute();
 foreach ($select as $row)
 
@@ -3741,7 +3245,7 @@ if ($resultado['error']) {
       
 <?php
   }
+  header("Location: resultados.php?id=$num_prueba");  
 ?>
-<script>window.location = 'calificar_prueba.php'</script>
-</body>
-      
+<script>window.location = 'resultados.php'</script> 
+</body>     

@@ -69,7 +69,7 @@
 </head>
 <body class="hold-transition sidebar-mini">
 
-<div class="conteiner">
+<div class="container">
     <div style="padding:10px;margin-top:50px" >
     </div>
     <h2 align="center">Calificación de Prueba PPG-IPG</h2><br>
