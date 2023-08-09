@@ -197,7 +197,8 @@ if (isset($num) && $num) {
   <div class="container-fluid">
     <div class="row">
       <div class="col-sm-12" align="center">
-        <a href="imprimir.php?id=<?php echo $id;?>" class="btn btn-primary mt-4">Imprimir Resultados</a>
+        <!-- <a href="imprimir.php?id=<?php echo $id;?>" class="btn btn-primary mt-4">Imprimir Resultados</a> -->
+        <input type="button" value="Imprimir" onclick="window.print()" class="btn btn-primary mt-4"/>
       </div>
     </div>
   <hr>
@@ -1063,7 +1064,5 @@ if (isset($num) && $num) {
           },
       }
   });
-
 </script>
-
 </body>
