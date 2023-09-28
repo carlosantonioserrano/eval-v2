@@ -212,8 +212,7 @@ if (isset($num) && $num) {
       </div>
     </div>
     <hr>
-    <div class="row" >
-      <!-- columna izq -->
+    <div class="row" align="center">
       <section class="col-lg-7 connectedSortable">
         <div class="container-fluid">
           <h4 class="m-0">Tabla PPG</h4>
